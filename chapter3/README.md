@@ -117,9 +117,9 @@ tyepdef struct Foo {
 このようなオブジェクトを複数インスタンス化したとする。
 
 ```cpp
-Foo foo0 = {0, func0\_impl, func1\_impl, func2\_impl};
-Foo foo1 = {1, func0\_impl, func1\_impl, func2\_impl};
-Foo foo2 = {2, func0\_impl, func1\_impl, func2\_impl};
+Foo foo0 = {0, func0_impl, func1_impl, func2_impl};
+Foo foo1 = {1, func0_impl, func1_impl, func2_impl};
+Foo foo2 = {2, func0_impl, func1_impl, func2_impl};
 ```
 
 この場合関数ポインタがメモリを無駄に使用しかねない。そこで仮想関数テーブルを導入することでこの無駄を排除できる。
@@ -131,16 +131,16 @@ typedef struct FooVtbl{
     void (*func2)(struct Foo *This);
 } FooVtbl;
 
-static FooVtbl foo_vtbl = {func0\_impl, func1\_impl, func2\_impl};
+static FooVtbl foo_vtbl = {func0_impl, func1_impl, func2_impl};
 
 typedef struct Foo{
     const int count;
     const FooVtbl *vptr;
 } Foo;
 
-Foo foo0 = {0, &foo\_vtbl};
-Foo foo1 = {1, &foo\_vtbl};
-Foo foo2 = {2, &foo\_vtbl}
+Foo foo0 = {0, &foo_vtbl};
+Foo foo1 = {1, &foo_vtbl};
+Foo foo2 = {2, &foo_vtbl}
 ```
 
 一方関数をcallするときはこの仮想関数テーブルを経由しないといけないので、記述が面倒になりうる。
