@@ -56,6 +56,6 @@
 | イベント / 状態 | IDLE\_WITHOUT\_CD | IDLE\_WITH\_CD | PLAY        | PAUSE        |
 |:---------------:|:-----------------:|:--------------:|:-----------:|--------------|
 | stop            | ignore()          | ignore()       | stopPlay()  | stopPlay()   |
-| PlayOrPause     | ignore()          | startPlay()    | pausePlay() | resumePlay() |
+| playOrPause     | ignore()          | startPlay()    | pausePlay() | resumePlay() |
 | disk            | insertCD()        | removeCD()     | removeCD()  | removeCD()   |
 
