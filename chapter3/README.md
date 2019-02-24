@@ -160,3 +160,5 @@ pFoo->vptr->func(pFoo);
 
 GUIライブラリなどではたとえC言語であってもオブジェクト指向的な設計になっていたりする。
 
+![figure1](images/figure1.png)
+
