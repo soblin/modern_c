@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 #include <errno.h>
@@ -8,14 +9,15 @@
 
 static void default_file_error_handler(FileErrorObserver *object, FileAccessorContext *pFileCtx);
 
-FileErrorObserver default_file_error_observer = {
+FileErrorObserver g_default_file_error_observer = {
   &default_file_error_handler
 };
 
 bool invoke_file_processor(FileAccessorContext *object){
   assert(object);
+
   if(object->pFileErrorObserver == NULL){
-    object->pFileErrorObserver = &default_file_error_observer;
+    object->pFileErrorObserver = &g_default_file_error_observer;
   }
   bool ret = object->processor(object);
   if(object->fp != NULL){
@@ -35,52 +37,35 @@ FILE *get_file_pointer(FileAccessorContext *object){
       object->pFileErrorObserver->onError(object->pFileErrorObserver, object);
     }
   }
-
   return object->fp;
 }
 
-long file_size(FileAccessorContext *object){
-  long save = file_current_pos(object);
-  if(save < 0) return -1;
-
-  if(set_file_pos(object, 0, SEEK_END) != 0) return -1;
-
-  long size = file_current_pos(object);
-  set_file_pos(object, save, SEEK_SET);
-
-  return size;
-}
-
-long file_current_pos(FileAccessorContext *object){
-  assert(object);
+int file_size(FileAccessorContext *object){
   FILE *fp = get_file_pointer(object);
-  if(fp == NULL) return -1;
-
-  long ret = ftell(fp);
-  if(ret < 0) object->pFileErrorObserver->onError(object->pFileErrorObserver, object);
-  return ret;
-}
-
-int set_file_pos(FileAccessorContext *object, long offset, int whence){
-  assert(object);
-  FILE *fp = get_file_pointer(object);
-  if(fp == NULL) return -1;
-
-  int ret = fseek(fp, offset, whence);
-  if(ret != 0) object->pFileErrorObserver->onError(object->pFileErrorObserver, object);
-
-  return ret;
+  int cnt = 0;
+  char buf[32];
+  while(fgets(buf, sizeof(buf), fp) != NULL){
+    cnt++;
+  }
+  printf("%d\n", cnt);
+  //object->fp = NULL;
+  fseek(fp, 0, SEEK_SET);
+  return cnt;
 }
 
 bool read_file(FileAccessorContext *object, BufferContext *pBufCtx){
   FILE *fp = get_file_pointer(object);
   if(fp == NULL) return false;
 
-  if(pBufCtx->size != fwrite(pBufCtx->pBuf, 1, pBufCtx->size, fp)){
-    object->pFileErrorObserver->onError(object->pFileErrorObserver, object);
-    return false;
+  int cnt = 0;
+  char buf[32];
+  while(fgets(buf, sizeof(buf), fp) != NULL){
+    pBufCtx->pBuf[cnt] = atoi(buf);
+    cnt++;
   }
-
+  if(pBufCtx->cnt != cnt){
+    object->pFileErrorObserver->onError(object->pFileErrorObserver, object);
+  }
   return true;
 }
 
@@ -88,15 +73,14 @@ bool write_file(FileAccessorContext *object, BufferContext *pBufCtx){
   FILE *fp = get_file_pointer(object);
   if(fp == NULL) return false;
 
-  if(pBufCtx->size != fread(pBufCtx->pBuf, 1, pBufCtx->size, fp)){
-    object->pFileErrorObserver->onError(object->pFileErrorObserver, object);
-    return false;
+  for(int i=0; i<pBufCtx->cnt; ++i){
+    fprintf(fp, "%d\n", pBufCtx->pBuf[i]);
   }
 
   return true;
 }
 
 static void default_file_error_handler(FileErrorObserver *object, FileAccessorContext *pFileCtx){
-  fprintf(stderr, "File access error '%s'(mode: %s): %s\n",
-          pFileCtx->pFname, pFileCtx->pMode, strerror (errno));
+  fprintf(stderr, "File access error: '%s'(mode: %s): %s\n",
+          pFileCtx->pFname, pFileCtx->pMode, strerror(errno));
 }

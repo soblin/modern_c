@@ -15,7 +15,8 @@ static void file_error(FileErrorObserver *object, FileAccessorContext *pFileCtx)
 
 typedef struct{
   BufferContext base;
-  Context *pAppCtx;
+  Context *pInputCtx;
+  Context *pOutputCtx;
 } MyBufferContext;
 
 typedef struct{
@@ -25,35 +26,36 @@ typedef struct{
 
 typedef struct{
   FileAccessorContext base;
-  long size;
+  int cnt;
 } SizeGetterContext;
 
 static FileErrorObserver file_error_observer = {
   file_error
 };
 
-IntSorterError int_sorter(const char *pFname){
-  Context ctx = {pFname, NULL, NULL, ERR_OK};
+IntSorterError int_sorter(const char *pInputFname, const char *pOutputFname){
+  Context inputCtx = {pInputFname, ERR_OK};
+  Context outputCtx = {pOutputFname, ERR_OK};
 
-  MyBufferContext bufCtx = {{NULL, 0, do_with_buffer}, &ctx};
+  MyBufferContext bufCtx = {{NULL, 0, do_with_buffer}, &inputCtx, &outputCtx};
+
   invoke_buffer_processor(&bufCtx.base);
-  return ctx.errorCategory;
+
+  return outputCtx.errorCategory;
 }
 
-static bool do_with_buffer(BufferContext *p){
-  MyBufferContext *pBufCtx = (MyBufferContext *)p;
+static bool do_with_buffer(BufferContext *object){
+  MyBufferContext *pBufCtx = (MyBufferContext *)object;
   MyFileAccessorContext readFileCtx = {
-    {NULL, pBufCtx->pAppCtx->pFname, "rb", reader, &file_error_observer},
-    pBufCtx
+    {NULL, pBufCtx->pInputCtx->pFname, "r", reader}, pBufCtx
   };
 
   if(!invoke_file_processor(&readFileCtx.base)) return false;
 
-  qsort(p->pBuf, p->size / sizeof(int), sizeof(int), comparator);
+  qsort(object->pBuf, object->cnt, sizeof(int), comparator);
 
   MyFileAccessorContext writeFileCtx = {
-    {NULL, pBufCtx->pAppCtx->pFname, "wb", writer, &file_error_observer},
-    pBufCtx
+    {NULL, pBufCtx->pOutputCtx->pFname, "w", writer}, pBufCtx
   };
 
   return invoke_file_processor(&writeFileCtx.base);
@@ -62,11 +64,11 @@ static bool do_with_buffer(BufferContext *p){
 static bool reader(FileAccessorContext *object){
   MyFileAccessorContext *pFileCtx = (MyFileAccessorContext *)object;
 
-  long size = file_size(object);
-  if(size == -1) return false;
+  int cnt = file_size(object);
+  if(cnt == -1) return false;
 
-  if(!allocate_buffer(&pFileCtx->pBufCtx->base, size)){
-    pFileCtx->pBufCtx->pAppCtx->errorCategory = ERR_MEMORY;
+  if(!allocate_buffer(&pFileCtx->pBufCtx->base, cnt)){
+    pFileCtx->pBufCtx->pInputCtx->errorCategory = ERR_MEMORY;
     return false;
   }
 
@@ -88,8 +90,8 @@ static int comparator(const void *p1, const void *p2){
 }
 
 static void file_error(FileErrorObserver *object, FileAccessorContext *pFileCtx){
-  default_file_error_observer.onError(object, pFileCtx);
+  g_default_file_error_observer.onError(object, pFileCtx);
 
   MyFileAccessorContext *pMyFileCtx = (MyFileAccessorContext *)pFileCtx;
-  pMyFileCtx->pBufCtx->pAppCtx->errorCategory = ERR_FILE;
+  pMyFileCtx->pBufCtx->pInputCtx->errorCategory = ERR_FILE;
 }
