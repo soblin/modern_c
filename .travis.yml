@@ -1,0 +1,13 @@
+sudo: required
+
+language: cpp
+
+compiler:
+    - gcc
+    - clang
+
+before_script:
+    - git submodule update
+    - cd chapter5/googletest/googletest
+    - g++ -std=c++11 -I./include/ -I. -c ./src/gtest-all.cc
+
