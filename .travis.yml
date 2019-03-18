@@ -11,3 +11,6 @@ before_script:
     - cd chapter5/googletest/googletest
     - g++ -std=c++11 -I./include/ -I. -c ./src/gtest-all.cc
 
+script:
+  - cd ./chapter5/add01
+  - make test
