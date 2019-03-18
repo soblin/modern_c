@@ -3,14 +3,15 @@ sudo: required
 language: cpp
 
 compiler:
-    - gcc
-    - clang
+  - gcc
+  - clang
 
 before_script:
-    - git submodule update
-    - cd chapter5/googletest/googletest
-    - g++ -std=c++11 -I./include/ -I. -c ./src/gtest-all.cc
+  - PWD=`pwd`
+  - git submodule update
+  - cd $PWD/chapter5/googletest/googletest
+  - g++ -std=c++11 -I./include/ -I. -c ./src/gtest-all.cc
 
 script:
-  - cd ./chapter5/add01
+  - cd $PWD/chapter5/add01
   - make test
