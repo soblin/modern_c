@@ -19,3 +19,5 @@ before_script:
 script:
   - cd $TRAVIS_CI_PATH/chapter5/add01
   - make test
+  - cd $TRAVIS_CI_PATH/chapter5/add02
+  - make test
