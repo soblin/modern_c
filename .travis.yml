@@ -21,3 +21,6 @@ script:
   - make test
   - cd $TRAVIS_CI_PATH/chapter5/add02
   - make test
+  - cd $TRAVIS_CI_PATH/chapter5/monster2
+  - make test
+  
