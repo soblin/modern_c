@@ -4,12 +4,14 @@ language: cpp
 
 compiler:
   - gcc
-  - clang
 
 env:
   global:
     - TRAVIS_CI_PATH=$(pwd)
-    
+
+before_install:
+  - pip install --user cpp-coveralls
+  
 before_script:
   - git submodule update
   - cd $TRAVIS_CI_PATH/chapter5/googletest/googletest
@@ -25,3 +27,10 @@ script:
   - make test
   - cd $TRAVIS_CI_PATH/chapter5/monster3
   - make test
+  - cd $TRAVIS_CI_PATH/chapter5/monster4
+  - make test
+
+after_success:
+  - cd $TRAVIS_CI_PATH/chapter5/monster4
+  - make gcov
+  - coveralls --exclude lib --exclude tests --gcov-options '\-lp'

@@ -11,20 +11,22 @@ void resetUsartPort(void){
   enableUsartReceiveBuffer(true);
 }
 
-void write1byteToLcd(int c){
-  PORTBbits.RB2 = 0;
-  PORTA = c >> 4;
-  PORTBbits.RB1 = 1;
-  PORTBbits.RB1 = 1;
-  PORTBbits.RB1 = 1;
-  PORTBbits.RB1 = 0;
-  PORTBbits.RB1 = 0;
+int upper4bitOf(int c){
+  return c >> 4;
+}
 
-  PORTA = c & 0xf;
-  PORTBbits.RB1 = 1;
-  PORTBbits.RB1 = 1;
-  PORTBbits.RB1 = 1;
-  PORTBbits.RB1 = 0;  
+int lower4bitOf(int c){
+  return c & 0xf;
+}
+
+void write1byteToLcd(int c){
+  setLcdPortRW(LCD_PORT_WRITE);
+
+  setPortA(upper4bitOf(c));
+  pulseLcdCE();
+
+  setPortA(lower4bitOf(c));
+  pulseLcdCE();
 }
 
 void performLcdControl(int c){
