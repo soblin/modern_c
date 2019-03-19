@@ -7,7 +7,7 @@ int isTimer3Overflow(void);
 void onTimer3Interrupt(void);
 
 #ifdef UNIT_TEST
-#define MOCKABLE(method) mocakble##method
+#define MOCKABLE(method) mockable##method
 #else
 #define MOCKABLE(method) method
 #endif
