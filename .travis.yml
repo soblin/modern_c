@@ -14,23 +14,23 @@ before_install:
   
 before_script:
   - git submodule update
-  - cd $(TRAVIS_CI_PATH)/chapter5/googletest/googletest
+  - cd $TRAVIS_CI_PATH/chapter5/googletest/googletest
   - g++ -std=c++11 -I./include/ -I. -c ./src/gtest-all.cc -lpthread
   - ar -rv libgtest.a gtest-all.o
 
 script:
-  - cd $(TRAVIS_CI_PATH)/chapter5/add01
+  - cd $TRAVIS_CI_PATH/chapter5/add01
   - make test
-  - cd $(TRAVIS_CI_PATH)/chapter5/add02
+  - cd $TRAVIS_CI_PATH/chapter5/add02
   - make test
-  - cd $(TRAVIS_CI_PATH)/chapter5/monster2
+  - cd $TRAVIS_CI_PATH/chapter5/monster2
   - make test
-  - cd $(TRAVIS_CI_PATH)/chapter5/monster3
+  - cd $TRAVIS_CI_PATH/chapter5/monster3
   - make test
-  - cd $(TRAVIS_CI_PATH)/chapter5/monster4
+  - cd $TRAVIS_CI_PATH/chapter5/monster4
   - make test
 
 after_success:
-  - cd $(TRAVIS_CI_PATH)/chapter5/monster4
+  - cd $TRAVIS_CI_PATH/chapter5/monster4
   - make gcov
   - coveralls --exclude lib --exclude tests --gcov-options '\-lp'
