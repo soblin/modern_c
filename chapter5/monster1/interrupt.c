@@ -1,15 +1,15 @@
 #include "hw.h"
 #include "interrupt.h"
 
-unsigned int isUsartInterruptOccurred(void){
+unsigned int isUsartInterruptOccurred(LowPriorityInterrupt *self){
   return PIR1bits.RCIF;
 }
 
-unsigned int isUsartOverrunOccurred(void){
+unsigned int isUsartOverrunOccurred(LowPriorityInterrupt *self){
   return RCSTAbits.OERR;
 }
 
-int isTimer3Overflow(void){
+int isTimer3Overflow(LowPriorityInterrupt *self){
   return PIR2bits.TMR3IF != 0;
 }
 
@@ -24,8 +24,8 @@ void resetUserPort(void){
   RCSTAbits.CREN = 1;
 }
 
-void onUsartInterrupt(void){
-  if(isUsartOverrunOccurred()){
+void onUsartInterrupt(LowPriorityInterrupt *self){
+  if(isUsartOverrunOccurred(self)){
     resetUserPort();
   }
   else{
@@ -80,7 +80,7 @@ void processLcdData(int c){
   }
 }
 
-void onTimer3Interrupt(void){
+void onTimer3Interrupt(LowPriorityInterrupt *self){
   int c;
   if((c = getCharFromRingBuffer(&ringBufferForLcd)) != -1){
     processLcdData(c);
@@ -90,16 +90,25 @@ void onTimer3Interrupt(void){
   }
 }
 
+static LowPriorityInterrupt lowPriorityInterrupt = {
+  isUsartInterruptOccurred,
+  onUsartInterrupt,
+  isTimer3Overflow,
+  onTimer3Interrupt
+};
+
 void lowPriorityISRCode(void){
-  if(isUsartInterruptOccurred()){
-    onUsartInterrupt();
-  }
-  else if(isTimer3Overflow()){
-    onTimer3Interrupt();
-  }
+  // デフォルトではこのlowPriorityInterruptを使う
+  // だがテストする時は差し替えることも可能
+  // テストする側ではperformLowPriorityInterruptの引数にmockを入れる
+  performLowPriorityInterrupt(&lowPriorityInterrupt);
 }
 
-
-int main(){
-  return 0;
+void performLowPriorityInterrupt(LowPriorityInterrupt *object){
+  if(object->isUsartInterruptOccurred(object)){
+    object->onUsartInterrupt(object);
+  }
+  else if(object->isTimer3Overflow(object)){
+    object->onTimer3Interrupt(object);
+  }
 }
